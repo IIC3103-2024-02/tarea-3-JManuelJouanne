@@ -4,3 +4,4 @@
 Referencias:
 https://github.com/shwosner/realtime-chat-supabase-react?tab=readme-ov-file
 
+https://github.com/pixegami/langchain-rag-tutorial/blob/main/create_database.py

@@ -1,0 +1,4 @@
+Flask
+flask-cors
+langchain==0.2.2
+langchain-community==0.2.3

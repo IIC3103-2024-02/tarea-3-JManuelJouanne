@@ -1,33 +1,55 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
+import { useContext } from "react";
+import { context } from "./context";
 
 
 export default function Chat() {
     const [ messages, setMessages ] = useState([]);
     const [ inputMessage, setInputMessage ] = useState('');
+    const { movie } = useContext(context);
 
-
-    const handleMessage = (e) => {
+    const handleMessage = async (e) => {
         e.preventDefault();
+    
         if (inputMessage.trim()) {
-            setMessages([...messages, { name: 'You', content: inputMessage, date: new Date().toLocaleString(), level: 'info' }]);
-            
-            axios.get('https://api', {message: inputMessage})
-            .then((res) => {
-                setMessages([...messages, { name: 'Bot', content: res.data.message, date: new Date().toLocaleString(), level: 'info' }]);
-            })
-            .catch((err) => {
-                setMessages([...messages, { name: 'Bot', content: 'Sorry, I could not understand that.', date: new Date().toLocaleString(), level: 'danger' }]);
-            });
-            
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                { name: 'You', content: inputMessage, date: new Date().toLocaleString(), level: 'info' }
+            ]);
+    
             setInputMessage('');
+    
+            try {
+                const res = await axios.post('http://localhost:5000/question', { message: inputMessage, movie: movie });
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    { name: 'Bot', content: res.data.message, date: new Date().toLocaleString(), level: 'info' }
+                ]);
+            } catch (err) {
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    { name: 'Bot', content: 'Sorry, I could not understand that.', date: new Date().toLocaleString(), level: 'danger' }
+                ]);
+            }
         }
     };
+    
 
     return (
         <div className="border rounded w-50 h-75 p-2 d-flex flex-column">
             <h1 className="h5 text-center mb-3">Movie Chat-bot</h1>
-            <ul className="list-unstyled overflow-auto" style={{ maxHeight: '400px' }}>
+            {
+            movie? <h2 className="h6 text-center mb-3">Pregúntame algo sobre {movie}</h2>
+            : <h2 className="h6 text-center mb-3">Selecciona una película</h2>
+        }
+            <ul
+            className="list-unstyled overflow-auto"
+            style={{
+                height: '400px',
+                flexGrow: 1,
+            }}
+            >
                 {messages.map((m) => (
                     <li className='row'>
                         <div 
