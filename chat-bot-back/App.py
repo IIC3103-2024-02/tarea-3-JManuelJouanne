@@ -6,6 +6,7 @@ CORS(app)
 
 @app.route('/')
 def hello():
+    print('Hello, World!')
     return jsonify({'message': 'Hello, World!'})
 
 @app.route('/question', methods=['POST'])
@@ -13,6 +14,7 @@ def question():
     data = request.get_json()
     question = data.get('message')
     movie = data.get('movie')
+    print(f'La pregunta sobre {movie} es: {question}')
 
     return jsonify({'message': f'Ufff que buena película. {movie} es una de mis favoritas'})
 
