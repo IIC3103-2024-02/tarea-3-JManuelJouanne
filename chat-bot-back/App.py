@@ -4,6 +4,10 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/')
+def hello():
+    return jsonify({'message': 'Hello, World!'})
+
 @app.route('/question', methods=['POST'])
 def question():
     data = request.get_json()
@@ -11,6 +15,8 @@ def question():
     movie = data.get('movie')
 
     return jsonify({'message': f'Ufff que buena película. {movie} es una de mis favoritas'})
+
+
 
 
 
