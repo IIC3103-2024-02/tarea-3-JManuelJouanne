@@ -12,7 +12,6 @@ DATA_PATH = "./../guiones"
 SUPA_PATH = "https://qjobpzeidydsnljmacgm.supabase.co"
 SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFqb2JwemVpZHlkc25sam1hY2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA5MDg2MjYsImV4cCI6MjA0NjQ4NDYyNn0.V_GYGLYnzL1NA2nKIX8_uelIJO-NlVfKfMGrZPSRzF8"
 
-
 def main():
     generate_data_store()
 
@@ -20,7 +19,7 @@ def main():
 def generate_data_store():
     documents = load_documents()
     chunks = split_text(documents)
-    embed_chunks = embed_text(chunks)
+    embed_text(chunks)
 
 
 def load_documents():
@@ -31,8 +30,8 @@ def load_documents():
 
 def split_text(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=400,
-        chunk_overlap=200,
+        chunk_size=600,
+        chunk_overlap=300,
         length_function=len,
         add_start_index=True,
     )
@@ -48,20 +47,23 @@ def split_text(documents: list[Document]):
 
 def embed_text(chunks: list[Document]):
     supabase = create_client(SUPA_PATH, SUPA_KEY)
+    n = 0
     for chunk in chunks:
         response = request_embedding(chunk.page_content)
         # chunk.metadata["embedding"] = response["embedding"]
-        save_embedding_to_supabase(chunk, response["embedding"], supabase)
+        save_embedding_to_supabase(chunk, response["embeddings"], supabase, n)
+        n += 1
     return
 
 
 def request_embedding(text: str):
     try:
-        url = "https://tormenta.ing.puc.cl/api/embed"
+        url = "http://tormenta.ing.puc.cl/api/embed"
         payload = {"model": "nomic-embed-text", "input": text}
+        print("Solicitando Embedding...")
         response = requests.post(url, json=payload)
         if response.status_code == 200:
-            print("Respuesta de la API:", response.json())
+            print("Respuesta de la API:", response.json()["embeddings"][0][0:10])
         else:
             print(f"Error en la solicitud: {response.status_code}")
             print(response.text)
@@ -70,21 +72,22 @@ def request_embedding(text: str):
         print(f"Error al hacer la solicitud: {str(e)}")
 
 
-def save_embedding_to_supabase(chunk, embedding: str, supabase):
+def save_embedding_to_supabase(chunk, embedding: str, supabase, n):
     id = str(uuid4())
-    embedding_str = "[" + ", ".join(map(str, embedding)) + "]"
+    embedding_str = f"{embedding[0]}"
     
     response = supabase.table('embeddings').insert({
         'id': id,
-        'text': chunk,
+        'number': n,
+        'text': chunk.page_content,
         'embedding': embedding_str,
-        'movie': chunk.metadata['source'].split('/')[-1]
+        'movie': chunk.metadata['source'].split('/')[-1].split('.')[0]
     }).execute()
 
-    if response.status_code == 201:
-        print("Embedding guardado correctamente en Supabase.")
+    if response.data[0]:
+        print(f"Embedding nº{n} guardado correctamente en Supabase.")
     else:
-        print("Error al guardar el embedding en Supabase:", response.json())
+        print("Error al guardar el embedding en Supabase:")
     return
 
 

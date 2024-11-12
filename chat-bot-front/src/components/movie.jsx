@@ -12,7 +12,7 @@ const movies = [
     "Top Gun",
     "Rocky",
     "Gran Torino",
-    "E.T."
+    "ET"
 ];
 
 function Movie({ name, onClick, isClicked }) {
