@@ -21,7 +21,7 @@ export default function Chat() {
             setInputMessage('');
     
             try {   // usamos url del .env
-                const res = await axios.post(process.env.REACT_APP_BACKEND_URL, { message: inputMessage, movie: movie });
+                const res = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/question`, { message: inputMessage, movie: movie });
                 setMessages((prevMessages) => [
                     ...prevMessages,
                     { name: 'Bot', content: res.data.message, date: new Date().toLocaleString(), level: 'info' }
